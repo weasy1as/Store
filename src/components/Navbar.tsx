@@ -36,9 +36,12 @@ const Navbar = () => {
         <FaArrowDown />
       </div>
 
-      <div className="hover:scale-110 cursor-pointer hover:text-blue-500">
+      <Link
+        href="/cart"
+        className="hover:scale-110 cursor-pointer hover:text-blue-500"
+      >
         <BsBasket2 size={25} />
-      </div>
+      </Link>
     </div>
   );
 };

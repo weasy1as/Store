@@ -1,8 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Card from "./Card";
-import { useRouter } from "next/navigation";
-import { IoFilter } from "react-icons/io5";
 import Navbar from "./Navbar";
 import Filter from "./Filter";
 
@@ -21,11 +19,7 @@ interface ProductType {
 
 const Woman = () => {
   const [products, setProducts] = useState<ProductType[]>([]);
-  const router = useRouter();
 
-  const handleClick = (id: number) => {
-    router.push(`/product/${id}`);
-  };
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -67,8 +61,9 @@ const Woman = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-6 gap-6 ">
           {products?.map((product) => (
-            <div key={product.id} onClick={() => handleClick(product.id)}>
+            <div key={product.id}>
               <Card
+                id={product.id}
                 title={product.title}
                 description={product.description}
                 image={product.image}
