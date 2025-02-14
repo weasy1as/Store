@@ -9,6 +9,8 @@ const Card = ({
   rating,
   price,
   count,
+  isCartPage,
+  onRemove,
 }: {
   id: number;
   title: string;
@@ -17,11 +19,25 @@ const Card = ({
   rating: number;
   price: number;
   count: number;
+  isCartPage?: boolean;
+  onRemove?: (id: number) => void;
 }) => {
   const [addedId, setAddedId] = useState<Number | null>(null);
+
   const handleClick = (id: number) => {
     setAddedId(id);
-    localStorage.setItem("items", JSON.stringify(id));
+
+    let cartItems: number[] = JSON.parse(
+      localStorage.getItem("CartItems") || "[]"
+    );
+
+    if (!cartItems.includes(id)) {
+      cartItems.push(id);
+    }
+
+    localStorage.setItem("CartItems", JSON.stringify(cartItems));
+
+    window.dispatchEvent(new Event("cartUpdated"));
     setTimeout(() => {
       setAddedId(null);
     }, 3000);
@@ -48,12 +64,21 @@ const Card = ({
         </p>
         <div className="w-full flex justify-between items-center">
           <p className="font-extrabold">Price: {price}</p>
-          <button
-            onClick={() => handleClick(id)}
-            className="bg-black p-2 rounded-xl text-white hover:bg-white hover:text-black hover:shadow-xl hover:border-black hover:border-2"
-          >
-            Add to cart
-          </button>
+          {isCartPage ? (
+            <button
+              onClick={() => onRemove?.(id)}
+              className="bg-red-500 p-2 rounded-xl text-white hover:bg-white hover:text-black hover:shadow-xl hover:border-black hover:border-2"
+            >
+              Remove
+            </button>
+          ) : (
+            <button
+              onClick={() => handleClick(id)}
+              className="bg-black p-2 rounded-xl text-white hover:bg-white hover:text-black hover:shadow-xl hover:border-black hover:border-2"
+            >
+              Add to cart
+            </button>
+          )}
         </div>
       </div>
       {addedId == id && (

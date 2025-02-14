@@ -1,10 +1,31 @@
+"use client";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BsBasket2 } from "react-icons/bs";
 import { GiClothes } from "react-icons/gi";
 import { FaArrowDown } from "react-icons/fa";
 
 const Navbar = () => {
+  const [cartCount, setCartCount] = useState(0);
+
+  const updateCartCount = () => {
+    const cartItems: number[] = JSON.parse(
+      localStorage.getItem("CartItems") || "[]"
+    );
+    setCartCount(cartItems.length);
+  };
+
+  useEffect(() => {
+    updateCartCount();
+
+    const handleCartUpdate = () => updateCartCount();
+    window.addEventListener("cartUpdated", handleCartUpdate);
+
+    return () => {
+      window.removeEventListener("cartUpdated", handleCartUpdate);
+    };
+  }, []);
+
   return (
     <div className="bg-black text-white flex justify-between p-4 items-center">
       <div className="flex items-center gap-3">
@@ -38,8 +59,9 @@ const Navbar = () => {
 
       <Link
         href="/cart"
-        className="hover:scale-110 cursor-pointer hover:text-blue-500"
+        className="hover:scale-110 cursor-pointer hover:text-blue-500 flex gap-2"
       >
+        <p>{cartCount}</p>
         <BsBasket2 size={25} />
       </Link>
     </div>

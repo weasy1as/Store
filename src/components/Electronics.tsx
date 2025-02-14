@@ -41,6 +41,32 @@ const Electronics = () => {
     fetchProducts();
   }, []);
 
+  const filterClick = (type: string) => {
+    if (type === "PLH") {
+      const sortedProducts = [...products].sort((a, b) => a.price - b.price);
+      setProducts([...sortedProducts]);
+    }
+
+    if (type === "PHL") {
+      const sortedProducts = [...products].sort((a, b) => b.price - a.price);
+      setProducts([...sortedProducts]);
+    }
+
+    if (type === "RLH") {
+      const sortedProducts = [...products].sort(
+        (a, b) => a.rating.rate - b.rating.rate
+      );
+      setProducts([...sortedProducts]);
+    }
+
+    if (type === "RHL") {
+      const sortedProducts = [...products].sort(
+        (a, b) => b.rating.rate - a.rating.rate
+      );
+      setProducts([...sortedProducts]);
+    }
+  };
+
   if (!products) return <p className="text-center mt-10">Loading product...</p>;
 
   return (
@@ -57,7 +83,7 @@ const Electronics = () => {
       </div>
 
       <div className="p-10">
-        <Filter />
+        <Filter filterClick={filterClick} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-6 gap-6 ">
           {products?.map((product) => (
