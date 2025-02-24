@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import Card from "./Card";
+import CheckoutButton from "./CheckoutButton";
 
 interface ProductType {
   id: number;
@@ -14,32 +15,36 @@ interface ProductType {
     rate: number;
     count: number;
   };
+  quantity: number; // New quantity field
 }
 
 const Cart = () => {
   const [products, setProducts] = useState<ProductType[]>([]);
-  let price = 0;
-
-  for (let index = 0; index < products.length; index++) {
-    price = price + products[index].price;
-  }
 
   useEffect(() => {
-    const savedProductIds: number[] = JSON.parse(
+    const savedCart: { id: number; quantity: number }[] = JSON.parse(
       localStorage.getItem("CartItems") || "[]"
     );
 
-    if (savedProductIds.length > 0) {
+    if (savedCart.length > 0) {
       const fetchProducts = async () => {
         try {
-          const productRequests = savedProductIds.map((id) =>
+          const productRequests = savedCart.map(({ id }) =>
             fetch(`https://fakestoreapi.com/products/${id}`).then((res) =>
               res.json()
             )
           );
 
           const productsData = await Promise.all(productRequests);
-          setProducts(productsData);
+
+          // ✅ Attach quantity to products
+          const updatedProducts = productsData.map((product) => ({
+            ...product,
+            quantity:
+              savedCart.find((item) => item.id === product.id)?.quantity || 1,
+          }));
+
+          setProducts(updatedProducts);
         } catch (error) {
           console.error("Failed to fetch products", error);
         }
@@ -49,24 +54,39 @@ const Cart = () => {
     }
   }, []);
 
+  // ✅ Calculate total price correctly
+  const totalPrice = products.reduce((acc, product) => {
+    return acc + product.price * product.quantity;
+  }, 0);
+
   const handleRemove = (id: number) => {
     let cartItems: number[] = JSON.parse(
       localStorage.getItem("CartItems") || "[]"
     );
+
     cartItems = cartItems.filter((item) => item !== id);
     localStorage.setItem("CartItems", JSON.stringify(cartItems));
 
-    setProducts(products.filter((product) => product.id !== id));
+    setProducts((prevProducts) =>
+      prevProducts
+        .map((product) =>
+          product.id === id
+            ? { ...product, quantity: product.quantity - 1 }
+            : product
+        )
+        .filter((product) => product.quantity > 0)
+    );
+
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
   return (
     <div>
       <Navbar />
-      <div className="mt-10 p-6">
+      <div className="w-full mt-10 p-6">
         <h1 className="text-center text-4xl font-bold mb-6">Your Cart</h1>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="flex flex-col gap-3 items-center">
           <div className="md:col-span-2 bg-white p-6 rounded-lg shadow-md">
             {products.length === 0 ? (
               <p className="text-center text-xl text-gray-500">
@@ -85,6 +105,7 @@ const Cart = () => {
                     count={product.rating.count}
                     isCartPage={true}
                     price={product.price}
+                    quantity={product.quantity} // Pass quantity to the card
                     onRemove={handleRemove}
                   />
                 ))}
@@ -92,24 +113,18 @@ const Cart = () => {
             )}
           </div>
 
-          <div className="bg-gray-100 p-6 rounded-lg shadow-lg h-fit">
+          <div className="w-[80%] bg-gray-100 p-6 rounded-lg shadow-lg h-fit">
             <h2 className="text-2xl font-bold mb-4 text-center">Checkout</h2>
             <div className="flex justify-between text-2xl font-semibold mb-4">
               <span>Total Price:</span>
-              <span>${price.toFixed(2)}</span>
+              <span>${totalPrice.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-2xl font-semibold mb-4">
               <span>Coupon code:</span>
-              <input
-                type="text"
-                name=""
-                id=""
-                className="shadow-xl rounded-md p-1"
-              />
+              <input type="text" className="shadow-xl rounded-md p-1" />
             </div>
-            <button className="w-full bg-black text-xl text-white py-3 rounded-lg hover:bg-gray-800 transition">
-              Proceed to Checkout
-            </button>
+
+            <CheckoutButton cartItems={products} />
           </div>
         </div>
       </div>
